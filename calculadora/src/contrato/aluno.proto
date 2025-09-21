@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+service AlunoService {
+  rpc criarAluno (Aluno) returns (Aluno) {}
+  rpc getAlunoByMatricula (AlunoMatricula) returns (Aluno) {}
+}
+
+message Aluno {
+    int32 matricula = 1;
+    string email = 2;
+    string nome = 3;
+}
+
+message AlunoMatricula {
+    int32 matricula = 1;
+}
