@@ -3,9 +3,9 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
-const PEDIDOS = "http://localhost:3001";
-const PAGAMENTOS = "http://localhost:3002";
-const ESTOQUE = "http://localhost:3003";
+const PEDIDOS  = process.env.PEDIDOS_URL  || "http://localhost:3001";
+const PAGAMENTOS = process.env.PAGAMENTOS_URL || "http://localhost:3002";
+const ESTOQUE = process.env.ESTOQUE_URL || "http://localhost:3003";
 
 app.post("/processar-pedido", async (req, res) => {
     const payload = req.body;

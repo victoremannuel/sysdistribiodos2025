@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  servico-orquestrador:
+    build: ./servico-orquestrador
+    container_name: servico-orquestrador
+    ports:
+      - "3000:3000"
+    depends_on:
+      - servico-pedidos
+      - servico-pagamentos
+      - servico-estoque
+    environment:
+      # se quiser usar variáveis no server.js depois
+      PEDIDOS_URL: http://servico-pedidos:3001
+      PAGAMENTOS_URL: http://servico-pagamentos:3002
+      ESTOQUE_URL: http://servico-estoque:3003
+
+  servico-pedidos:
+    build: ./servico-pedidos
+    container_name: servico-pedidos
+    ports:
+      - "3001:3001"
+
+  servico-pagamentos:
+    build: ./servico-pagamentos
+    container_name: servico-pagamentos
+    ports:
+      - "3002:3002"
+
+  servico-estoque:
+    build: ./servico-estoque
+    container_name: servico-estoque
+    ports:
+      - "3003:3003"
