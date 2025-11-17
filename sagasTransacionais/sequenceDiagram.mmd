@@ -1,0 +1,48 @@
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant O as servico-orquestrador
+    participant P as servico-pedidos
+    participant PG as servico-pagamentos
+    participant E as servico-estoque
+
+    C->>O: POST /processar-pedido\n(clienteId, produtoId, quantidade, valor)
+
+    alt Fluxo de Sucesso
+        O->>P: POST /pedidos
+        P-->>O: 201 {pedidoId, status: PENDENTE}
+
+        O->>PG: POST /pagamentos
+        PG-->>O: 201 {pagamentoId, status: APROVADO}
+
+        O->>E: POST /estoque/reserva
+        E-->>O: 200 {estoque_restante}
+
+        O->>P: PUT /pedidos/{id}/status\n{status: CONFIRMADO}
+        P-->>O: 200 {status: CONFIRMADO}
+
+        O-->>C: 201 {pedidoId, status: PEDIDO_CONFIRMADO}
+
+    else Falha em alguma etapa (ex.: estoque)
+        O->>P: POST /pedidos
+        P-->>O: 201 {pedidoId, status: PENDENTE}
+
+        O->>PG: POST /pagamentos
+        PG-->>O: 201 {pagamentoId, status: APROVADO}
+
+        O->>E: POST /estoque/reserva
+        E-->>O: 400 ERRO (ex.: estoque insuficiente)
+
+        note over O: Inicia transações compensatórias
+
+        O->>E: POST /estoque/liberacao
+        E-->>O: 200 OK
+
+        O->>PG: POST /pagamentos/{pagamentoId}/reembolso
+        PG-->>O: 200 {status: REEMBOLSADO}
+
+        O->>P: PUT /pedidos/{id}/status\n{status: CANCELADO}
+        P-->>O: 200 {status: CANCELADO}
+
+        O-->>C: 500 {"erro": "A saga falhou", ...}
+    end

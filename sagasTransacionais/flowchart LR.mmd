@@ -1,0 +1,23 @@
+flowchart LR
+    cliente((Cliente))
+
+    subgraph SAGA["Epic Saga (sao) - Domínio de Processamento de Pedidos"]
+        orq[servico-orquestrador]
+
+        pedidos[servico-pedidos]
+        pagamentos[servico-pagamentos]
+        estoque[servico-estoque]
+
+        %% Fluxo principal (sucesso)
+        orq -->|POST /pedidos| pedidos
+        orq -->|POST /pagamentos| pagamentos
+        orq -->|POST /estoque/reserva| estoque
+        orq -->|PUT /pedidos/:id/status CONFIRMADO| pedidos
+
+        %% Fluxo de compensação
+        orq -.->|POST /estoque/liberacao| estoque
+        orq -.->|POST /pagamentos/:id/reembolso| pagamentos
+        orq -.->|PUT /pedidos/:id/status CANCELADO| pedidos
+    end
+
+    cliente -->|POST /processar-pedido| orq
